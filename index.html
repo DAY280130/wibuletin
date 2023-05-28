@@ -39,7 +39,7 @@
           toggle() {
             this.isOpen = !this.isOpen;
           },
-          data: {},
+          data: null,
         });
       });
 
@@ -187,7 +187,16 @@
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         <template x-for="anime in animes.list">
-          <div class="shadow-md rounded-md h-[22rem]" @click="() => {$store.modal.toggle(); console.log($store.modal.isOpen)}" :key="anime.mal_id" x-data>
+          <div
+            class="shadow-md rounded-md h-[22rem]"
+            @click="() => {
+              $store.modal.toggle()
+              $store.modal.data = anime
+              // console.log($store.modal.isOpen)
+            }"
+            :key="anime.mal_id"
+            x-data
+          >
             <!-- card picture section -->
             <section x-data="{score: anime.score && ''}" class="h-2/3 rounded-t-md overflow-hidden relative">
               <!-- background image -->
@@ -283,9 +292,12 @@
         x-transition:leave="transition ease-in duration-200 transform"
         x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
         x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-        class="inline-block w-full max-w-4xl p-8 my-20 overflow-hidden text-left transition-all transform bg-white rounded-lg shadow-xl"
+        class="flex gap-2 w-full max-w-4xl p-8 my-20 overflow-hidden text-left transition-all transform bg-white rounded-lg shadow-xl"
       >
-        test
+        <div class="w-2/5 overflow-hidden">
+          <img :src="modal.data ? modal.data.images.webp.large_image_url : ''" :alt="modal.data && modal.data.title.split(' ').join('-').toLowerCase()" />
+        </div>
+        <span x-text="modal.data ? modal.data.title : ''"></span>
       </div>
     </section>
   </body>
