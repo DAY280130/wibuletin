@@ -6,9 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <title>Wibuletin</title>
-  </head>
-  <body class="pt-10 flex flex-col gap-3">
     <script>
       document.addEventListener("alpine:init", () => {
         Alpine.store("animes", {
@@ -35,6 +32,14 @@
             }
             this.isLoading = false;
           },
+        });
+
+        Alpine.store("modal", {
+          isOpen: false,
+          toggle() {
+            this.isOpen = !this.isOpen;
+          },
+          data: {},
         });
       });
 
@@ -80,6 +85,9 @@
         return finalText;
       };
     </script>
+    <title>Wibuletin</title>
+  </head>
+  <body x-data :class="`py-10 flex flex-col gap-3 ${$store.modal.isOpen ? 'overflow-hidden' : ''}`">
     <section
       id="search-container"
       x-data="{
@@ -179,7 +187,7 @@
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         <template x-for="anime in animes.list">
-          <div class="shadow-md rounded-md h-[22rem]" :key="anime.mal_id" x-data>
+          <div class="shadow-md rounded-md h-[22rem]" @click="() => {$store.modal.toggle(); console.log($store.modal.isOpen)}" :key="anime.mal_id" x-data>
             <!-- card picture section -->
             <section x-data="{score: anime.score && ''}" class="h-2/3 rounded-t-md overflow-hidden relative">
               <!-- background image -->
@@ -240,6 +248,44 @@
             </section>
           </div>
         </template>
+      </div>
+    </section>
+    <section
+      id="modal-container"
+      class="fixed inset-0 z-[100] overflow-y-auto flex items-center justify-center min-h-screen px-4 text-center sm:p-5"
+      x-data="{modal: $store.modal}"
+      x-show="modal.isOpen"
+      aria-labelledby="modal-title"
+      role="dialog"
+      aria-modal="true"
+    >
+      <!-- modal dialog shadow -->
+      <div
+        x-cloak
+        @click="modal.toggle()"
+        x-show="modal.isOpen"
+        x-transition:enter="transition ease-out duration-300 transform"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-200 transform"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 transition-opacity bg-gray-500/80"
+        aria-hidden="true"
+      ></div>
+      <!-- modal dialog -->
+      <div
+        x-cloak
+        x-show="modal.isOpen"
+        x-transition:enter="transition ease-out duration-300 transform"
+        x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+        x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+        x-transition:leave="transition ease-in duration-200 transform"
+        x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+        x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+        class="inline-block w-full max-w-4xl p-8 my-20 overflow-hidden text-left transition-all transform bg-white rounded-lg shadow-xl"
+      >
+        test
       </div>
     </section>
   </body>
