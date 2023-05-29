@@ -130,9 +130,9 @@
     </script>
     <title>Wibuletin</title>
   </head>
-  <body x-data :class="`py-10 px-16 flex flex-col gap-3 ${$store.modal.isOpen ? 'overflow-hidden' : ''}`">
+  <body x-data :class="`py-10 px-16 flex flex-col gap-3 ${$store.modal.isOpen ? 'overflow-y-hidden' : 'overflow-y-scroll'}`">
     <section
-      id="search-container"
+      id="topbar-container"
       x-data="{
         filter: $store.filters,
         async getAnimes() { 
@@ -140,10 +140,10 @@
         }
         // getAnimes() {console.log(this.queryFilter)}
       }"
-      class="sticky top-0 bg-white/80 backdrop-blur-md py-3 z-[99]"
+      class="sticky flex flex-col gap-1 top-0 bg-white/80 backdrop-blur-md py-1 z-[99]"
     >
       <!-- search bar -->
-      <div class="w-full md:w-3/4 p-1 border-2 border-slate-300 rounded-md flex bg-white">
+      <section id="search-container" class="w-full md:w-3/4 p-1 border-2 border-slate-300 rounded-md flex bg-white">
         <input
           class="px-3 palceholder-slate-200 placeholder:italic grow border-transparent focus:outline-none trimmedtext-slate-500"
           type="text"
@@ -172,107 +172,111 @@
             <line x1="21" x2="16.65" y1="21" y2="16.65"></line>
           </svg>
         </button>
-      </div>
-    </section>
-    <section id="filter-pagination-container" class="w-full flex flex-col sm:flex-row justify-between items-start">
-      <section id="filter-container" class="w-4 h-4 bg-red-600"></section>
-      <section
-        id="pagination-container"
-        class="flex"
-        x-data="{
-          filter: $store.filters,
-          pagination: $store.paginations,
-        }"
-      >
-        <!-- prev page button -->
-        <button
-          :class="`${pagination.page !== 1 ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-200 text-slate-400'} p-1 rounded-l-md transition-colors duration-200`"
-          :disabled="pagination.page === 1"
-          @click="() => {
-          pagination.page -= 1;
-          searchAnimes($store)
-        }"
-        >
-          <!-- prev icon -->
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="lucide lucide-chevron-left"
-          >
-            <polyline points="15 18 9 12 15 6"></polyline>
-          </svg>
-        </button>
-        <!-- first page button -->
-        <button
-          :class="`${pagination.page === 1 ? 'bg-blue-600 text-white' :'bg-slate-300 text-slate-700 hover:bg-slate-400'} py-1 px-2 transition-colors duration-200`"
-          @click="() => {
-            pagination.page = 1;
-            searchAnimes($store)
-          }"
-        >
-          1
-        </button>
-        <span class="bg-slate-300 text-slate-700 hover:bg-slate-400 py-1 px-2" x-show="pagination.page > 2">...</span>
-        <!-- middle/current page button -->
-        <button
+      </section>
+      <!-- filter & pagination bar -->
+      <section id="filter-pagination-container" class="w-full flex flex-col sm:flex-row justify-between items-start">
+        <section id="filter-container" class="w-4 h-4 bg-red-600"></section>
+        <section
+          id="pagination-container"
+          class="flex"
           x-data="{
-            get page() {
-              if (pagination.page === 1) return 2;
-              if (pagination.page === pagination.lastPage) return (pagination.lastPage - 1);
-              return pagination.page;
-            } 
-          }"
-          :class="`${(pagination.page !== 1) && (pagination.page !== pagination.lastPage) ? 'bg-blue-600 text-white' :'bg-slate-300 text-slate-700 hover:bg-slate-400'} py-1 px-2 transition-colors duration-200`"
-          x-show="pagination.lastPage > 2"
-          x-text="page"
-          @click="() => {
-            pagination.page = page;
-            searchAnimes($store)
-          }"
-        ></button>
-        <span class="bg-slate-300 text-slate-700 hover:bg-slate-400 py-1 px-2" x-show="(pagination.lastPage - pagination.page) > 1">...</span>
-        <!-- last page button -->
-        <button
-          :class="`${pagination.lastPage === pagination.page ? 'bg-blue-600 text-white' :'bg-slate-300 text-slate-700 hover:bg-slate-400'} py-1 px-2 transition-colors duration-200`"
-          x-show="pagination.lastPage !== 1"
-          x-text="pagination.lastPage"
-          @click="() => {
-            pagination.page = pagination.lastPage;
-            searchAnimes($store)
-          }"
-        ></button>
-        <!-- next page button -->
-        <button
-          :class="`${pagination.lastPage !== pagination.page ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-200 text-slate-400'} p-1 rounded-r-md transition-colors duration-200`"
-          :disabled="pagination.lastPage === pagination.page"
-          @click="() => {
-          pagination.page += 1;
-          searchAnimes($store)
+            filter: $store.filters,
+            pagination: $store.paginations,
           }"
         >
-          <!-- next icon -->
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="lucide lucide-chevron-right"
+          <!-- prev page button -->
+          <button
+            :class="`${pagination.page !== 1 ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-200 text-slate-400'} p-1 rounded-l-md transition-colors duration-200`"
+            :disabled="pagination.page === 1"
+            @click="() => {
+            pagination.page -= 1;
+            searchAnimes($store)
+          }"
           >
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-        </button>
+            <!-- prev icon -->
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="lucide lucide-chevron-left"
+            >
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          <!-- first page button -->
+          <button
+            :class="`${pagination.page === 1 ? 'bg-blue-600 text-white' :'bg-slate-300 text-slate-700 hover:bg-slate-400'} py-1 px-2 transition-colors duration-200`"
+            @click="() => {
+              pagination.page = 1;
+              searchAnimes($store)
+            }"
+            :disabled="pagination.page === 1"
+          >
+            1
+          </button>
+          <span class="bg-slate-300 text-slate-700 py-1 px-2" x-show="pagination.page > 2">...</span>
+          <!-- middle/current page button -->
+          <button
+            x-data="{
+              get page() {
+                if (pagination.page === 1) return 2;
+                if (pagination.page === pagination.lastPage) return (pagination.lastPage - 1);
+                return pagination.page;
+              } 
+            }"
+            :class="`${pagination.page !== 1 && pagination.page !== pagination.lastPage ? 'bg-blue-600 text-white' :'bg-slate-300 text-slate-700 hover:bg-slate-400'} py-1 px-2 transition-colors duration-200`"
+            x-show="pagination.lastPage > 2"
+            x-text="page"
+            @click="() => {
+              pagination.page = page;
+              searchAnimes($store)
+            }"
+            :disabled="pagination.page !== 1 && pagination.page !== pagination.lastPage"
+          ></button>
+          <span class="bg-slate-300 text-slate-700 py-1 px-2" x-show="(pagination.lastPage - pagination.page) > 1">...</span>
+          <!-- last page button -->
+          <button
+            :class="`${pagination.lastPage === pagination.page ? 'bg-blue-600 text-white' :'bg-slate-300 text-slate-700 hover:bg-slate-400'} py-1 px-2 transition-colors duration-200`"
+            x-show="pagination.lastPage !== 1"
+            x-text="pagination.lastPage"
+            @click="() => {
+              pagination.page = pagination.lastPage;
+              searchAnimes($store)
+            }"
+            :disabled="pagination.lastPage === pagination.page"
+          ></button>
+          <!-- next page button -->
+          <button
+            :class="`${pagination.lastPage !== pagination.page ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-200 text-slate-400'} p-1 rounded-r-md transition-colors duration-200`"
+            :disabled="pagination.lastPage === pagination.page"
+            @click="() => {
+            pagination.page += 1;
+            searchAnimes($store)
+            }"
+          >
+            <!-- next icon -->
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="lucide lucide-chevron-right"
+            >
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </section>
       </section>
     </section>
     <section
