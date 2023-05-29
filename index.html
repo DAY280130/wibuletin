@@ -101,7 +101,7 @@
       class="sticky top-0 bg-white/80 backdrop-blur-md px-16 py-3 z-[99]"
     >
       <!-- search bar -->
-      <div class="w-full md:w-3/4 p-1 border-2 border-slate-300 rounded-md flex">
+      <div class="w-full md:w-3/4 p-1 border-2 border-slate-300 rounded-md flex bg-white">
         <input
           class="px-3 palceholder-slate-200 placeholder:italic grow border-transparent focus:outline-none trimmedtext-slate-500"
           type="text"
@@ -110,7 +110,7 @@
           @keyup.enter="getAnimes()"
         />
         <button
-          class="rounded-md p-2 bg-slate-300 hover:bg-slate-200 active:bg-slate-300 text-slate-500 hover:text-slate-400 active:text-slate-500 hover:scale-105 active:scale-100 transition ease-in-out"
+          class="rounded-md p-2 bg-slate-300 hover:bg-slate-200 active:bg-slate-300 text-slate-500 hover:text-slate-400 active:text-slate-500 hover:scale-105 active:scale-100 cursor-pointer transition ease-in-out"
           @click="getAnimes()"
         >
           <!-- search icon  -->
@@ -188,7 +188,7 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         <template x-for="anime in animes.list">
           <div
-            class="shadow-md rounded-md h-[22rem]"
+            class="bg-white hover:bg-slate-100 shadow-md rounded-md h-[22rem] cursor-pointer transition ease-in-out"
             @click="() => {
               $store.modal.toggle()
               $store.modal.data = anime
@@ -210,7 +210,7 @@
             <section class="relative h-1/3">
               <!-- score -->
               <span
-                x-data="{score: anime.score !== null ? anime.score.toFixed(2) : '???'}"
+                x-data="{score: anime.score !== null ? anime.score.toFixed(2) : 'N/A'}"
                 :class="`absolute -right-1 -top-5 flex p-1 rounded-l-md text-white z-50 ${
                   score >= 7.5 ? 'bg-green-600' :
                   score >= 5.0 ? 'bg-yellow-500' :
@@ -243,7 +243,7 @@
               ></span>
               <!-- genres -->
               <span
-                class="absolute flex flex-wrap gap-1 bottom-3 left-3"
+                class="absolute flex flex-wrap gap-1 bottom-3 left-3 right-3"
                 x-data="{
                   genre: anime.genres ? anime.genres[0] : null,
                   theme: anime.themes ? anime.themes[0] : null,
@@ -292,12 +292,126 @@
         x-transition:leave="transition ease-in duration-200 transform"
         x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
         x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-        class="flex gap-2 w-full max-w-4xl p-8 my-20 overflow-hidden text-left transition-all transform bg-white rounded-lg shadow-xl"
+        class="flex relative flex-col sm:flex-row gap-2 max-h-[95vh] sm:max-h-[85vh] w-full max-w-4xl p-8 overflow-hidden text-left transition-all transform bg-white rounded-lg shadow-xl"
       >
-        <div class="w-2/5 overflow-hidden">
-          <img :src="modal.data ? modal.data.images.webp.large_image_url : ''" :alt="modal.data && modal.data.title.split(' ').join('-').toLowerCase()" />
+        <div
+          @click="modal.toggle()"
+          class="absolute top-1 right-1 bg-red-600 hover:bg-red-700 active:bg-red-600 text-white hover:scale-105 active:scale-100 hover:cursor-pointer transition ease-in-out p-3 rounded-md"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="lucide lucide-x"
+          >
+            <line x1="18" x2="6" y1="6" y2="18"></line>
+            <line x1="6" x2="18" y1="6" y2="18"></line>
+          </svg>
         </div>
-        <span x-text="modal.data ? modal.data.title : ''"></span>
+        <div class="flex justify-center h-2/5 sm:h-full sm:w-2/5 overflow-clip">
+          <img
+            class="object-cover object-top"
+            :src="modal.data ? modal.data.images.webp.large_image_url : ''"
+            :alt="modal.data && modal.data.title.split(' ').join('-').toLowerCase()"
+          />
+        </div>
+        <div class="pr-3 w-full flex flex-col gap-2">
+          <div class="grid grid-cols-7">
+            <span class="col-span-2 font-bold">Name</span>
+            <span class="col-span-5 flex gap-1"
+              >:
+              <span x-text="modal.data && modal.data.title"></span>
+            </span>
+          </div>
+          <div class="grid grid-cols-7">
+            <span class="col-span-2 font-bold">Year</span>
+            <span class="col-span-5 flex gap-1"
+              >:
+              <span x-text="modal.data && (modal.data.year ?? 'N/A')"></span>
+            </span>
+          </div>
+          <div class="grid grid-cols-7">
+            <span class="col-span-2 font-bold">Genres</span>
+            <span class="col-span-5 flex gap-1">
+              :
+              <template x-for="genre in (modal.data && (modal.data.genres ?? [])) ">
+                <span class="py-1 px-2 bg-slate-300 text-slate-700 text-base rounded-md" x-text="genre.name"></span>
+              </template>
+              <span x-show="(modal.data && (modal.data.genres.length === 0))">N/A</span>
+            </span>
+          </div>
+          <div class="grid grid-cols-7">
+            <span class="col-span-2 font-bold">Themes</span>
+            <span class="col-span-5 flex gap-1">
+              :
+              <template x-for="theme in (modal.data && (modal.data.themes ?? [])) ">
+                <span class="py-1 px-2 bg-slate-300 text-slate-700 text-base rounded-md" x-text="theme.name"></span>
+              </template>
+              <span x-show="(modal.data && (modal.data.themes.length === 0))">N/A</span>
+            </span>
+          </div>
+          <div class="grid grid-cols-7">
+            <span class="col-span-2 font-bold">Demographics</span>
+            <span class="col-span-5 flex gap-1">
+              :
+              <template x-for="demographic in (modal.data && (modal.data.demographics ?? [])) ">
+                <span class="py-1 px-2 bg-slate-300 text-slate-700 text-base rounded-md" x-text="demographic.name"></span>
+              </template>
+              <span x-show="(modal.data && (modal.data.demographics.length === 0))">N/A</span>
+            </span>
+          </div>
+          <div class="grid grid-cols-7">
+            <span class="col-span-2 font-bold">Score</span>
+            <span class="col-span-5 flex gap-1"
+              >:
+              <span x-text="modal.data && (modal.data.score ?? 'N/A')"></span>
+            </span>
+          </div>
+          <div class="grid grid-cols-7">
+            <span class="col-span-2 font-bold">Status</span>
+            <span class="col-span-5 flex gap-1"
+              >:
+              <span x-text="modal.data && (modal.data.status ?? 'N/A')"></span>
+            </span>
+          </div>
+          <div class="grid grid-cols-7">
+            <span class="col-span-2 font-bold">Episodes</span>
+            <span class="col-span-5 flex gap-1"
+              >:
+              <span x-text="modal.data && (modal.data.episodes ?? 'N/A')"></span>
+            </span>
+          </div>
+          <div class="grid grid-cols-7">
+            <span class="col-span-2 font-bold">Duration</span>
+            <span class="col-span-5 flex gap-1"
+              >:
+              <span x-text="modal.data && (modal.data.duration ?? 'N/A')"></span>
+            </span>
+          </div>
+          <div class="grid grid-cols-7">
+            <span class="col-span-2 font-bold">Studios</span>
+            <span class="col-span-5 flex gap-1">
+              :
+              <template x-for="studio in (modal.data && (modal.data.studios ?? [])) ">
+                <span class="py-1 px-2 bg-slate-300 text-slate-700 text-base rounded-md" x-text="studio.name"></span>
+              </template>
+              <span x-show="(modal.data && (modal.data.studios.length === 0))">N/A</span>
+            </span>
+          </div>
+          <div class="grid grid-cols-7">
+            <span class="col-span-2 font-bold">Synopsis</span>
+            <span class="col-span-5 flex gap-1"
+              >:
+              <span class="max-h-32 overflow-y-auto" x-html="modal.data && (modal.data.synopsis ?? 'N/A')"></span>
+            </span>
+          </div>
+        </div>
       </div>
     </section>
   </body>
