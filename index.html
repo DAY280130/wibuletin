@@ -67,23 +67,23 @@
         });
       });
 
-      const search = async (animes, paginations, filters) => {
-        animes.isLoading = true;
-        animes.list = [];
+      const searchAnimes = async (store) => {
+        store.animes.isLoading = true;
+        store.animes.list = [];
         try {
-          const responsePromise = await fetch(`https://api.jikan.moe/v4/anime?sfw${filters.allFilter}${paginations.filter}`);
+          const responsePromise = await fetch(`https://api.jikan.moe/v4/anime?sfw${store.filters.allFilter}${store.paginations.filter}`);
           const response = await responsePromise.json();
-          animes.list = response.data;
-          paginations.page = response.pagination.current_page;
-          paginations.lastPage = response.pagination.last_visible_page;
-          console.log(animes);
-          console.log(paginations);
+          store.animes.list = response.data;
+          store.paginations.page = response.pagination.current_page;
+          store.paginations.lastPage = response.pagination.last_visible_page;
+          console.log(store.animes);
+          console.log(store.paginations);
           // console.log(animes.list);
         } catch (e) {
           console.log(e);
-          animes.isError = true;
+          store.animes.isError = true;
         }
-        animes.isLoading = false;
+        store.animes.isLoading = false;
       };
 
       const truncate = (text, maxChar) => {
@@ -136,7 +136,7 @@
       x-data="{
         filter: $store.filters,
         async getAnimes() { 
-          await search($store.animes, $store.paginations, $store.filters)
+          await searchAnimes($store)
         }
         // getAnimes() {console.log(this.queryFilter)}
       }"
@@ -178,18 +178,19 @@
       <section id="filter-container" class="w-4 h-4 bg-red-600"></section>
       <section
         id="pagination-container"
-        class="flex gap-1"
+        class="flex"
         x-data="{
           filter: $store.filters,
           pagination: $store.paginations,
         }"
       >
+        <!-- prev page button -->
         <button
-          :class="`${pagination.page !== 1 ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-200 text-slate-400'} p-1 rounded-md transition-colors duration-200`"
+          :class="`${pagination.page !== 1 ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-200 text-slate-400'} p-1 rounded-l-md transition-colors duration-200`"
           :disabled="pagination.page === 1"
           @click="() => {
           pagination.page -= 1;
-          search($store.animes, $store.paginations, $store.filters)
+          searchAnimes($store)
         }"
         >
           <!-- prev icon -->
@@ -208,30 +209,52 @@
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
         </button>
+        <!-- first page button -->
         <button
-          :class="`${pagination.page === 1 ? 'bg-blue-600 text-white' :'bg-slate-300 text-slate-700 hover:bg-slate-400'} py-1 px-2 rounded-md transition-colors duration-200`"
+          :class="`${pagination.page === 1 ? 'bg-blue-600 text-white' :'bg-slate-300 text-slate-700 hover:bg-slate-400'} py-1 px-2 transition-colors duration-200`"
           @click="() => {
             pagination.page = 1;
-            search($store.animes, $store.paginations, $store.filters)
+            searchAnimes($store)
           }"
         >
           1
         </button>
+        <span class="bg-slate-300 text-slate-700 hover:bg-slate-400 py-1 px-2" x-show="pagination.page > 2">...</span>
+        <!-- middle/current page button -->
         <button
-          :class="`${pagination.lastPage === pagination.page ? 'bg-blue-600 text-white' :'bg-slate-300 text-slate-700 hover:bg-slate-400'} py-1 px-2 rounded-md transition-colors duration-200`"
+          x-data="{
+            get page() {
+              if (pagination.page === 1) return 2;
+              if (pagination.page === pagination.lastPage) return (pagination.lastPage - 1);
+              return pagination.page;
+            } 
+          }"
+          :class="`${(pagination.page !== 1) && (pagination.page !== pagination.lastPage) ? 'bg-blue-600 text-white' :'bg-slate-300 text-slate-700 hover:bg-slate-400'} py-1 px-2 transition-colors duration-200`"
+          x-show="pagination.lastPage > 2"
+          x-text="page"
+          @click="() => {
+            pagination.page = page;
+            searchAnimes($store)
+          }"
+        ></button>
+        <span class="bg-slate-300 text-slate-700 hover:bg-slate-400 py-1 px-2" x-show="(pagination.lastPage - pagination.page) > 1">...</span>
+        <!-- last page button -->
+        <button
+          :class="`${pagination.lastPage === pagination.page ? 'bg-blue-600 text-white' :'bg-slate-300 text-slate-700 hover:bg-slate-400'} py-1 px-2 transition-colors duration-200`"
           x-show="pagination.lastPage !== 1"
           x-text="pagination.lastPage"
           @click="() => {
             pagination.page = pagination.lastPage;
-            search($store.animes, $store.paginations, $store.filters)
+            searchAnimes($store)
           }"
         ></button>
+        <!-- next page button -->
         <button
-          :class="`${pagination.lastPage !== pagination.page ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-200 text-slate-400'} p-1 rounded-md transition-colors duration-200`"
+          :class="`${pagination.lastPage !== pagination.page ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-200 text-slate-400'} p-1 rounded-r-md transition-colors duration-200`"
           :disabled="pagination.lastPage === pagination.page"
           @click="() => {
           pagination.page += 1;
-          search($store.animes, $store.paginations, $store.filters)
+          searchAnimes($store)
           }"
         >
           <!-- next icon -->
@@ -255,7 +278,7 @@
     <section
       id="cards-container"
       x-data="{
-        init: async () => await search($store.animes, $store.paginations, $store.filters),
+        init: async () => await searchAnimes($store),
         animes: $store.animes,
       }"
     >
