@@ -46,7 +46,7 @@
             if (this.orderBy === "") return "";
             return `&order_by=${this.orderBy}`;
           },
-          sort: "asc",
+          sort: "desc",
           get sortFilter() {
             if (this.sort === "") return "";
             return `&sort=${this.sort}`;
@@ -189,183 +189,268 @@
         </button>
       </section>
       <!-- filters & pagination bar -->
-      <section id="filter-pagination-container" class="w-full flex flex-col sm:flex-row justify-between items-start">
+      <section id="filter-pagination-container" class="w-full flex sm:flex-row justify-between items-end">
         <!-- filters -->
-        <section id="filter-container" class="flex flex-wrap gap-1">
-          <!-- score filter -->
-          <div class="flex justify-center">
-            <div
-              x-data="{
-                    open: false,
-                    toggle() {
-                        if (this.open)  return this.close();
-                        this.$refs.button.focus();
-                        this.open = true;
-                    },
-                    close(focusAfter) {
-                        if (! this.open) return;
-                        this.open = false;
-                        focusAfter && focusAfter.focus();
-                    }
-                }"
-              x-on:keydown.escape.prevent.stop="close($refs.button)"
-              x-on:focusin.window="! $refs.panel.contains($event.target) && close()"
-              x-id="['dropdown-button']"
-              class="relative"
-            >
-              <!-- Button -->
-              <button
-                x-ref="button"
-                x-on:click="toggle()"
-                :aria-expanded="open"
-                :aria-controls="$id('dropdown-button')"
-                type="button"
-                class="flex items-center py-1 px-2 bg-white hover:bg-slate-50 rounded-md shadow-md font-semibold"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  class="lucide lucide-star fill-yellow-400 stroke-yellow-400 mr-1"
-                >
-                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                </svg>
-                <span x-text="`Score : ${filter.minScore} - ${filter.maxScore}`"></span>
-              </button>
-              <!-- Panel -->
+        <section id="filter-container" class="flex flex-col gap-1">
+          <div id="top-side" class="flex flex-wrap gap-1">
+            <!-- score filter -->
+            <div class="flex justify-center">
               <div
-                x-ref="panel"
-                x-show="open"
-                x-transition.origin.top.left
-                x-on:click.outside="close($refs.button)"
-                :id="$id('dropdown-button')"
-                style="display: none"
-                class="absolute left-0 flex items-center gap-1 mt-1 p-1 rounded-md bg-white shadow-md"
-              >
-                <input
-                  class="p-1 w-14 border-2 border-slate-300 focus:outline-none text-slate-700 rounded-md"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="9.99"
-                  x-model="filter.minScore"
-                />
-                -
-                <input
-                  class="p-1 w-14 border-2 border-slate-300 focus:outline-none text-slate-700 rounded-md"
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  max="10"
-                  x-model="filter.maxScore"
-                />
-              </div>
-            </div>
-          </div>
-          <!-- year filter -->
-          <div class="flex justify-center">
-            <div
-              x-data="{
-                    open: false,
-                    toggle() {
-                        if (this.open)  return this.close();
-                        this.$refs.button.focus();
-                        this.open = true;
-                    },
-                    close(focusAfter) {
-                        if (! this.open) return;
-                        this.open = false;
-                        focusAfter && focusAfter.focus();
-                    }
-                }"
-              x-on:keydown.escape.prevent.stop="close($refs.button)"
-              x-on:focusin.window="! $refs.panel.contains($event.target) && close()"
-              x-id="['dropdown-button']"
-              class="relative"
-            >
-              <!-- Button -->
-              <button
-                x-ref="button"
-                x-on:click="toggle()"
-                :aria-expanded="open"
-                :aria-controls="$id('dropdown-button')"
-                type="button"
-                class="flex items-center py-1 px-2 bg-white hover:bg-slate-50 rounded-md shadow-md font-semibold"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  class="lucide lucide-calendar-days mr-1"
-                >
-                  <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
-                  <line x1="16" x2="16" y1="2" y2="6"></line>
-                  <line x1="8" x2="8" y1="2" y2="6"></line>
-                  <line x1="3" x2="21" y1="10" y2="10"></line>
-                  <path d="M8 14h.01"></path>
-                  <path d="M12 14h.01"></path>
-                  <path d="M16 14h.01"></path>
-                  <path d="M8 18h.01"></path>
-                  <path d="M12 18h.01"></path>
-                  <path d="M16 18h.01"></path>
-                </svg>
-                <span x-text="`Year : ${filter.startDate !== '' ? filter.startDate : 'Not Set'} - ${filter.endDate !== '' ? filter.endDate : 'Not Set'}`"></span>
-              </button>
-              <!-- Panel -->
-              <div
-                x-ref="panel"
-                x-show="open"
-                x-transition.origin.top.left
-                x-on:click.outside="close($refs.button)"
-                :id="$id('dropdown-button')"
-                style="display: none"
-                class="absolute left-0 flex items-center gap-1 mt-1 p-1 rounded-md bg-white shadow-md"
-              >
-                <!-- <input
-                  class="p-1 w-14 border-2 border-slate-300 focus:outline-none text-slate-700 rounded-md"
-                  type="number"
-                  min="1961"
-                  :max="filter.endDate"
-                  x-model="filter.startDate"
-                /> -->
-                <select class="p-1 w-full border-2 border-slate-300 focus:outline-none text-slate-700 rounded-md" x-model="filter.startDate">
-                  <option value="">Not Set</option>
-                  <template x-for="i in ((new Date(Date.now()).getFullYear()) - 1960)">
-                    <option :value="i + 1960" x-text="i + 1960" :selected="(i + 1960) == filter.startDate"></option>
-                  </template>
-                </select>
-                -
-                <!-- <input
-                  x-data="{
-                    maxDate: new Date(Date.now()).getFullYear()
+                x-data="{
+                      open: false,
+                      toggle() {
+                          if (this.open)  return this.close();
+                          this.$refs.button.focus();
+                          this.open = true;
+                      },
+                      close(focusAfter) {
+                          if (! this.open) return;
+                          this.open = false;
+                          focusAfter && focusAfter.focus();
+                      }
                   }"
-                  class="p-1 w-14 border-2 border-slate-300 focus:outline-none text-slate-700 rounded-md"
-                  type="number"
-                  :min="filter.startDate"
-                  :max="maxDate"
-                  x-model="filter.endDate"
-                /> -->
-                <select class="p-1 w-full border-2 border-slate-300 focus:outline-none text-slate-700 rounded-md" x-model="filter.endDate">
-                  <option value="">Not Set</option>
-                  <template x-for="i in ((new Date(Date.now()).getFullYear()) - 1962)">
-                    <option :value="i + 1962" x-text="i + 1962" :selected="(i + 1962) == filter.endDate"></option>
-                  </template>
-                </select>
+                x-on:keydown.escape.prevent.stop="close($refs.button)"
+                x-on:focusin.window="! $refs.panel.contains($event.target) && close()"
+                x-id="['dropdown-button']"
+                class="relative"
+              >
+                <!-- Button -->
+                <button
+                  x-ref="button"
+                  x-on:click="toggle()"
+                  :aria-expanded="open"
+                  :aria-controls="$id('dropdown-button')"
+                  type="button"
+                  class="flex items-center py-1 px-2 bg-white hover:bg-slate-50 border-2 border-slate-200 rounded-md font-semibold"
+                >
+                  <!-- star icon -->
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="lucide lucide-star fill-yellow-400 stroke-yellow-400 mr-1"
+                  >
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                  </svg>
+                  <span x-text="`Score : ${filter.minScore} - ${filter.maxScore}`"></span>
+                </button>
+                <!-- Panel -->
+                <div
+                  x-ref="panel"
+                  x-show="open"
+                  x-transition.origin.top.left
+                  x-on:click.outside="close($refs.button)"
+                  :id="$id('dropdown-button')"
+                  style="display: none"
+                  class="absolute left-0 flex items-center gap-1 mt-1 p-1 rounded-md bg-white shadow-md"
+                >
+                  <input
+                    class="p-1 w-14 border-2 border-slate-300 focus:outline-none text-slate-700 rounded-md"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="9.99"
+                    x-model="filter.minScore"
+                  />
+                  -
+                  <input
+                    class="p-1 w-14 border-2 border-slate-300 focus:outline-none text-slate-700 rounded-md"
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    max="10"
+                    x-model="filter.maxScore"
+                  />
+                </div>
+              </div>
+            </div>
+            <!-- year filter -->
+            <div class="flex justify-center">
+              <div
+                x-data="{
+                      open: false,
+                      toggle() {
+                          if (this.open)  return this.close();
+                          this.$refs.button.focus();
+                          this.open = true;
+                      },
+                      close(focusAfter) {
+                          if (! this.open) return;
+                          this.open = false;
+                          focusAfter && focusAfter.focus();
+                      }
+                  }"
+                x-on:keydown.escape.prevent.stop="close($refs.button)"
+                x-on:focusin.window="! $refs.panel.contains($event.target) && close()"
+                x-id="['dropdown-button']"
+                class="relative"
+              >
+                <!-- Button -->
+                <button
+                  x-ref="button"
+                  x-on:click="toggle()"
+                  :aria-expanded="open"
+                  :aria-controls="$id('dropdown-button')"
+                  type="button"
+                  class="flex items-center py-1 px-2 bg-white hover:bg-slate-50 border-2 border-slate-200 rounded-md font-semibold"
+                >
+                  <!-- calendar icon -->
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="lucide lucide-calendar-days mr-1"
+                  >
+                    <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
+                    <line x1="16" x2="16" y1="2" y2="6"></line>
+                    <line x1="8" x2="8" y1="2" y2="6"></line>
+                    <line x1="3" x2="21" y1="10" y2="10"></line>
+                    <path d="M8 14h.01"></path>
+                    <path d="M12 14h.01"></path>
+                    <path d="M16 14h.01"></path>
+                    <path d="M8 18h.01"></path>
+                    <path d="M12 18h.01"></path>
+                    <path d="M16 18h.01"></path>
+                  </svg>
+                  <span x-text="`Year : ${filter.startDate !== '' ? filter.startDate : 'Not Set'} - ${filter.endDate !== '' ? filter.endDate : 'Not Set'}`"></span>
+                </button>
+                <!-- Panel -->
+                <div
+                  x-ref="panel"
+                  x-show="open"
+                  x-transition.origin.top.left
+                  x-on:click.outside="close($refs.button)"
+                  :id="$id('dropdown-button')"
+                  style="display: none"
+                  class="absolute left-0 flex items-center gap-1 mt-1 p-1 rounded-md bg-white shadow-md"
+                >
+                  <select class="p-1 w-full border-2 border-slate-300 focus:outline-none text-slate-700 rounded-md" x-model="filter.startDate">
+                    <option value="">Not Set</option>
+                    <template x-for="i in ((new Date(Date.now()).getFullYear()) - 1960)">
+                      <option :value="i + 1960" x-text="i + 1960" :selected="(i + 1960) == filter.startDate"></option>
+                    </template>
+                  </select>
+                  -
+                  <select class="p-1 w-full border-2 border-slate-300 focus:outline-none text-slate-700 rounded-md" x-model="filter.endDate">
+                    <option value="">Not Set</option>
+                    <template x-for="i in ((new Date(Date.now()).getFullYear()) - 1962)">
+                      <option :value="i + 1962" x-text="i + 1962" :selected="(i + 1962) == filter.endDate"></option>
+                    </template>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <!-- order filter -->
+            <div class="flex justify-center">
+              <div
+                x-data="{
+                      open: false,
+                      toggle() {
+                          if (this.open)  return this.close();
+                          this.$refs.button.focus();
+                          this.open = true;
+                      },
+                      close(focusAfter) {
+                          if (! this.open) return;
+                          this.open = false;
+                          focusAfter && focusAfter.focus();
+                      }
+                  }"
+                x-on:keydown.escape.prevent.stop="close($refs.button)"
+                x-on:focusin.window="! $refs.panel.contains($event.target) && close()"
+                x-id="['dropdown-button']"
+                class="relative"
+              >
+                <!-- Button -->
+                <button
+                  x-ref="button"
+                  x-on:click="toggle()"
+                  :aria-expanded="open"
+                  :aria-controls="$id('dropdown-button')"
+                  type="button"
+                  class="flex items-center py-1 px-2 bg-white hover:bg-slate-50 border-2 border-slate-200 rounded-md font-semibold"
+                >
+                  <!-- ascending icon -->
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="lucide lucide-arrow-down-narrow-wide mr-1"
+                    x-show="filter.sort === 'asc'"
+                  >
+                    <path d="m3 16 4 4 4-4"></path>
+                    <path d="M7 20V4"></path>
+                    <path d="M11 4h4"></path>
+                    <path d="M11 8h7"></path>
+                    <path d="M11 12h10"></path>
+                  </svg>
+                  <!-- descending icon -->
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="lucide lucide-arrow-down-wide-narrow mr-1"
+                    x-show="filter.sort === 'desc'"
+                  >
+                    <path d="m3 16 4 4 4-4"></path>
+                    <path d="M7 20V4"></path>
+                    <path d="M11 4h10"></path>
+                    <path d="M11 8h7"></path>
+                    <path d="M11 12h4"></path>
+                  </svg>
+                  <span class="capitalize" x-text="`Sort : ${filter.orderBy !== '' ? filter.orderBy.replace('_', ' ') : 'Not Set'} (${filter.sort})`"></span>
+                </button>
+                <!-- Panel -->
+                <div
+                  x-ref="panel"
+                  x-show="open"
+                  x-transition.origin.top.left
+                  x-on:click.outside="close($refs.button)"
+                  :id="$id('dropdown-button')"
+                  style="display: none"
+                  class="absolute left-0 flex items-center gap-1 mt-1 p-1 rounded-md bg-white shadow-md"
+                >
+                  <select class="p-1 w-[6.25rem] border-2 border-slate-300 focus:outline-none text-slate-700 capitalize rounded-md" x-model="filter.orderBy">
+                    <option value="">Not Set</option>
+                    <template x-for="orderType in ['title', 'start_date', 'end_date', 'score']">
+                      <option class="capitalize" :value="orderType" x-text="orderType.replace('_', ' ')" :selected="orderType == filter.orderBy"></option>
+                    </template>
+                  </select>
+                  (
+                  <select class="p-1 w-28 border-2 border-slate-300 focus:outline-none text-slate-700 rounded-md" x-model="filter.sort">
+                    <option value="asc">Ascending</option>
+                    <option value="desc">Descending</option>
+                  </select>
+                  )
+                </div>
               </div>
             </div>
           </div>
+          <div id="bottom-side" class="bg-red-600 w-full">test</div>
         </section>
         <!-- pagination -->
         <section
