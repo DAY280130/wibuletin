@@ -145,7 +145,7 @@
     </script>
     <title>Wibuletin</title>
   </head>
-  <body x-data :class="`py-10 px-16 flex flex-col gap-3 ${$store.modal.isOpen ? 'overflow-y-hidden' : 'overflow-y-scroll'}`">
+  <body x-data :class="`py-2 sm:py-10 px-2 sm:px-16 flex flex-col gap-3 ${$store.modal.isOpen ? 'overflow-y-hidden' : 'overflow-y-scroll'}`">
     <section
       id="topbar-container"
       x-data="{
@@ -189,7 +189,7 @@
         </button>
       </section>
       <!-- filters & pagination bar -->
-      <section id="filter-pagination-container" class="w-full flex sm:flex-row justify-between items-end">
+      <section id="filter-pagination-container" class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-end">
         <!-- filters -->
         <section id="filter-container" class="flex flex-col gap-1">
           <div id="top-side" class="flex flex-wrap gap-1">
