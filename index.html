@@ -31,7 +31,7 @@
             if (this.query === "") return "";
             return `&q=${this.query}`;
           },
-          startDate: "2023",
+          startDate: "2022",
           get startDateFilter() {
             if (this.startDate === "") return "";
             return `&start_date=${this.startDate}`;
@@ -39,7 +39,7 @@
           endDate: "2023",
           get endDateFilter() {
             if (this.endDate === "") return "";
-            return `&start_date=${this.endDate}`;
+            return `&end_date=${this.endDate}`;
           },
           orderBy: "start_date",
           get orderByFilter() {
@@ -62,7 +62,7 @@
             return `&maxScore=${this.maxScore}`;
           },
           get allFilter() {
-            return `${this.queryFilter}${this.orderByFilter}${this.sortFilter}${this.startDateFilter}${this.endDateFilter}${this.minScoreFilter}${this.maxScoreFilter}&status=airing`;
+            return `${this.queryFilter}${this.orderByFilter}${this.sortFilter}${this.startDateFilter}${this.endDateFilter}${this.minScoreFilter}${this.maxScoreFilter}`;
           },
         });
 
@@ -265,6 +265,104 @@
                   max="10"
                   x-model="filter.maxScore"
                 />
+              </div>
+            </div>
+          </div>
+          <!-- year filter -->
+          <div class="flex justify-center">
+            <div
+              x-data="{
+                    open: false,
+                    toggle() {
+                        if (this.open)  return this.close();
+                        this.$refs.button.focus();
+                        this.open = true;
+                    },
+                    close(focusAfter) {
+                        if (! this.open) return;
+                        this.open = false;
+                        focusAfter && focusAfter.focus();
+                    }
+                }"
+              x-on:keydown.escape.prevent.stop="close($refs.button)"
+              x-on:focusin.window="! $refs.panel.contains($event.target) && close()"
+              x-id="['dropdown-button']"
+              class="relative"
+            >
+              <!-- Button -->
+              <button
+                x-ref="button"
+                x-on:click="toggle()"
+                :aria-expanded="open"
+                :aria-controls="$id('dropdown-button')"
+                type="button"
+                class="flex items-center py-1 px-2 bg-white hover:bg-slate-50 rounded-md shadow-md font-semibold"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="lucide lucide-calendar-days mr-1"
+                >
+                  <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
+                  <line x1="16" x2="16" y1="2" y2="6"></line>
+                  <line x1="8" x2="8" y1="2" y2="6"></line>
+                  <line x1="3" x2="21" y1="10" y2="10"></line>
+                  <path d="M8 14h.01"></path>
+                  <path d="M12 14h.01"></path>
+                  <path d="M16 14h.01"></path>
+                  <path d="M8 18h.01"></path>
+                  <path d="M12 18h.01"></path>
+                  <path d="M16 18h.01"></path>
+                </svg>
+                <span x-text="`Year : ${filter.startDate !== '' ? filter.startDate : 'Not Set'} - ${filter.endDate !== '' ? filter.endDate : 'Not Set'}`"></span>
+              </button>
+              <!-- Panel -->
+              <div
+                x-ref="panel"
+                x-show="open"
+                x-transition.origin.top.left
+                x-on:click.outside="close($refs.button)"
+                :id="$id('dropdown-button')"
+                style="display: none"
+                class="absolute left-0 flex items-center gap-1 mt-1 p-1 rounded-md bg-white shadow-md"
+              >
+                <!-- <input
+                  class="p-1 w-14 border-2 border-slate-300 focus:outline-none text-slate-700 rounded-md"
+                  type="number"
+                  min="1961"
+                  :max="filter.endDate"
+                  x-model="filter.startDate"
+                /> -->
+                <select class="p-1 w-full border-2 border-slate-300 focus:outline-none text-slate-700 rounded-md" x-model="filter.startDate">
+                  <option value="">Not Set</option>
+                  <template x-for="i in ((new Date(Date.now()).getFullYear()) - 1960)">
+                    <option :value="i + 1960" x-text="i + 1960" :selected="(i + 1960) == filter.startDate"></option>
+                  </template>
+                </select>
+                -
+                <!-- <input
+                  x-data="{
+                    maxDate: new Date(Date.now()).getFullYear()
+                  }"
+                  class="p-1 w-14 border-2 border-slate-300 focus:outline-none text-slate-700 rounded-md"
+                  type="number"
+                  :min="filter.startDate"
+                  :max="maxDate"
+                  x-model="filter.endDate"
+                /> -->
+                <select class="p-1 w-full border-2 border-slate-300 focus:outline-none text-slate-700 rounded-md" x-model="filter.endDate">
+                  <option value="">Not Set</option>
+                  <template x-for="i in ((new Date(Date.now()).getFullYear()) - 1962)">
+                    <option :value="i + 1962" x-text="i + 1962" :selected="(i + 1962) == filter.endDate"></option>
+                  </template>
+                </select>
               </div>
             </div>
           </div>
