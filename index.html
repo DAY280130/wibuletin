@@ -61,8 +61,18 @@
             if (this.max_score === 10.0) return "";
             return `&maxScore=${this.maxScore}`;
           },
+          genres: [],
+          get genresFilter() {
+            if (this.genres.length === 0) return "";
+            return `&genres=${this.genres.join(",")}`;
+          },
+          genresExclude: [],
+          get genresExcludeFilter() {
+            if (this.genresExclude.length === 0) return "";
+            return `&genres_exclude=${this.genresExclude.join(",")}`;
+          },
           get allFilter() {
-            return `${this.queryFilter}${this.orderByFilter}${this.sortFilter}${this.startDateFilter}${this.endDateFilter}${this.minScoreFilter}${this.maxScoreFilter}`;
+            return `${this.queryFilter}${this.orderByFilter}${this.sortFilter}${this.startDateFilter}${this.endDateFilter}${this.minScoreFilter}${this.maxScoreFilter}${this.genresFilter}${this.genresExcludeFilter}`;
           },
         });
 
@@ -72,7 +82,7 @@
             return `&page=${this.page}`;
           },
           lastPage: 1,
-          limit: 25,
+          limit: 24,
           get limitFilter() {
             return `&limit=${this.limit}`;
           },
@@ -146,6 +156,7 @@
     <title>Wibuletin</title>
   </head>
   <body x-data :class="`py-2 sm:py-10 px-2 sm:px-16 flex flex-col gap-3 ${$store.modal.isOpen ? 'overflow-y-hidden' : 'overflow-y-scroll'}`">
+    <!-- Topbar -->
     <section
       id="topbar-container"
       x-data="{
@@ -167,8 +178,9 @@
           @keyup.enter="getAnimes()"
         />
         <button
-          class="rounded-md p-2 bg-slate-300 hover:bg-slate-200 active:bg-slate-300 text-slate-500 hover:text-slate-400 active:text-slate-500 hover:scale-105 active:scale-100 cursor-pointer transition ease-in-out"
+          class="rounded-md p-2 bg-slate-300 hover:bg-slate-200 active:bg-slate-300 disabled:bg-slate-300 text-slate-500 hover:text-slate-400 active:text-slate-500 disabled:text-slate-500 hover:scale-105 active:scale-100 disabled:scale-100 transition ease-in-out"
           @click="getAnimes()"
+          :disabled="$store.animes.isLoading"
         >
           <!-- search icon  -->
           <svg
@@ -189,10 +201,10 @@
         </button>
       </section>
       <!-- filters & pagination bar -->
-      <section id="filter-pagination-container" class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-end">
+      <section id="filter-pagination-container" class="w-full flex flex-col sm:flex-row gap-1 justify-between items-start sm:items-end">
         <!-- filters -->
-        <section id="filter-container" class="flex flex-col gap-1">
-          <div id="top-side" class="flex flex-wrap gap-1">
+        <section id="filter-container" class="flex flex-col gap-1 items-start">
+          <div class="flex flex-wrap gap-1">
             <!-- score filter -->
             <div class="flex justify-center">
               <div
@@ -248,7 +260,7 @@
                   x-on:click.outside="close($refs.button)"
                   :id="$id('dropdown-button')"
                   style="display: none"
-                  class="absolute left-0 flex items-center gap-1 mt-1 p-1 rounded-md bg-white shadow-md"
+                  class="absolute left-0 flex items-center gap-1 mt-1 p-1 rounded-md bg-white shadow-md z-[999]"
                 >
                   <input
                     class="p-1 w-14 border-2 border-slate-300 focus:outline-none text-slate-700 rounded-md"
@@ -334,7 +346,7 @@
                   x-on:click.outside="close($refs.button)"
                   :id="$id('dropdown-button')"
                   style="display: none"
-                  class="absolute left-0 flex items-center gap-1 mt-1 p-1 rounded-md bg-white shadow-md"
+                  class="absolute left-0 flex items-center gap-1 mt-1 p-1 rounded-md bg-white shadow-md z-[999]"
                 >
                   <select class="p-1 w-full border-2 border-slate-300 focus:outline-none text-slate-700 rounded-md" x-model="filter.startDate">
                     <option value="">Not Set</option>
@@ -432,7 +444,7 @@
                   x-on:click.outside="close($refs.button)"
                   :id="$id('dropdown-button')"
                   style="display: none"
-                  class="absolute left-0 flex items-center gap-1 mt-1 p-1 rounded-md bg-white shadow-md"
+                  class="absolute left-0 flex items-center gap-1 mt-1 p-1 rounded-md bg-white shadow-md z-[999]"
                 >
                   <select class="p-1 w-[6.25rem] border-2 border-slate-300 focus:outline-none text-slate-700 capitalize rounded-md" x-model="filter.orderBy">
                     <option value="">Not Set</option>
@@ -450,116 +462,342 @@
               </div>
             </div>
           </div>
-          <div id="bottom-side" class="bg-red-600 w-full">test</div>
+          <!-- genre filter -->
+          <div class="flex justify-center">
+            <div
+              x-data="{
+                open: false,
+                toggle() {
+                  if (this.open)  return this.close();
+                  this.$refs.button.focus();
+                  this.open = true;
+                },
+                close(focusAfter) {
+                  if (! this.open) return;
+                  this.open = false;
+                  focusAfter && focusAfter.focus();
+                },
+                genresAvailable: [],
+              }"
+              x-on:keydown.escape.prevent.stop="close($refs.button)"
+              x-on:focusin.window="() => {
+                try {
+                  !$refs.panel.contains($event.target) && close()
+                } catch(e) {}
+              }"
+              x-id="['dropdown-button']"
+              class="relative"
+            >
+              <!-- Button -->
+              <button
+                x-ref="button"
+                x-on:click="toggle()"
+                :aria-expanded="open"
+                :aria-controls="$id('dropdown-button')"
+                type="button"
+                class="flex gap-1 flex-nowrap items-center py-1 px-2 max-w-[90vw] sm:max-w-[50vw] lg:max-w-[70vw] bg-white hover:bg-slate-50 border-2 border-slate-300 rounded-md font-semibold overflow-hidden"
+              >
+                <!-- ascending icon -->
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="lucide lucide-layout-dashboard"
+                >
+                  <rect width="7" height="9" x="3" y="3" rx="1"></rect>
+                  <rect width="7" height="5" x="14" y="3" rx="1"></rect>
+                  <rect width="7" height="9" x="14" y="12" rx="1"></rect>
+                  <rect width="7" height="5" x="3" y="16" rx="1"></rect>
+                </svg>
+                <span class="flex flex-nowrap gap-1 items-center w-full overflow-hidden">
+                  <span class="inline whitespace-nowrap">Genres &#58;</span>
+                  <span class="inline whitespace-nowrap" x-show="filter.genres.length === 0 && filter.genresExclude.length === 0"> Not Set</span>
+                  <!-- for making scrollbar gone but still scrollable -->
+                  <style>
+                    /* Hide scrollbar for Chrome, Safari and Opera */
+                    #genres-scrollable::-webkit-scrollbar {
+                      display: none;
+                    }
+
+                    /* Hide scrollbar for IE, Edge and Firefox */
+                    #genres-scrollable {
+                      -ms-overflow-style: none; /* IE and Edge */
+                      scrollbar-width: none; /* Firefox */
+                    }
+                  </style>
+                  <span id="genres-scrollable" class="overflow-x-scroll space-x-1">
+                    <template x-for="genre in filter.genres">
+                      <span
+                        class="inline whitespace-nowrap py-1 px-2 bg-slate-300 text-sm capitalize text-slate-700 rounded-md"
+                        x-text="`+ ${genresAvailable[genresAvailable.findIndex(e => e.mal_id === genre)].name}`"
+                      ></span>
+                    </template>
+                    <template x-for="genre in filter.genresExclude">
+                      <span
+                        class="inline whitespace-nowrap py-1 px-2 bg-slate-300 text-sm capitalize text-slate-700 rounded-md"
+                        x-text="`- ${genresAvailable[genresAvailable.findIndex(e => e.mal_id === genre)].name}`"
+                      ></span>
+                    </template>
+                  </span>
+                </span>
+              </button>
+              <!-- Panel -->
+              <div
+                x-data="{
+                  genreChoices: [],
+                  themeChoices: [],
+                  demographicChoices: [],
+                  async init() {
+                    try {
+                      const getGenresPromise = await fetch('https:\/\/api.jikan.moe/v4/genres/anime?filter=genres')
+                      const getGenres = await getGenresPromise.json()
+                      this.genreChoices = getGenres.data
+                      genresAvailable.push(...this.genreChoices)
+                      console.log('genres :', this.genreChoices)
+                      
+                      const getThemesPromise = await fetch('https:\/\/api.jikan.moe/v4/genres/anime?filter=themes')
+                      const getThemes = await getThemesPromise.json()
+                      this.themeChoices = getThemes.data
+                      genresAvailable.push(...this.themeChoices)
+                      console.log('themes :', this.themeChoices)
+                      
+                      const getDemographicsPromise = await fetch('https:\/\/api.jikan.moe/v4/genres/anime?filter=demographics')
+                      const getDemographics = await getDemographicsPromise.json()
+                      this.demographicChoices = getDemographics.data
+                      genresAvailable.push(...this.demographicChoices)
+                      console.log('demographics :', this.demographicChoices)
+                    } catch (e) {console.log(e)}
+                  }
+                }"
+                x-ref="panel"
+                x-show="open"
+                x-transition.origin.top.left
+                x-on:click.outside="close($refs.button)"
+                :id="$id('dropdown-button')"
+                style="display: none"
+                class="absolute left-0 w-[] flex flex-col items-start max-h-[50vh] gap-1 mt-1 p-1 rounded-md bg-white shadow-md overflow-y-scroll z-[999]"
+              >
+                Genres :
+                <span class="flex flex-wrap gap-1 justify-start w-[85vw] sm:w-[45vw] lg:w-[65vw]">
+                  <template x-for="genreChoice in genreChoices">
+                    <button
+                      x-data="{
+                        state: (filter.genres && filter.genresExclude) && (filter.genres.includes(genreChoice.mal_id) ? 1 : filter.genresExclude.includes(genreChoice.mal_id) ? 2 : 0)
+                      }"
+                      :class="`${state === 1 ? 'bg-green-500 text-white hover:bg-green-600' : state === 2 ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-slate-300 text-slate-700 hover:bg-slate-400'} py-1 px-2 rounded-md`"
+                      @click="() => {
+                        if (state === 0) {
+                          filter.genres.push(genreChoice.mal_id)
+                          // console.log(state)
+                          state = 1
+                        } else if (state === 1) {
+                          const index = filter.genres.indexOf(genreChoice.mal_id)
+                          if (index > -1) filter.genres.splice(index, 1)
+                          filter.genresExclude.push(genreChoice.mal_id)
+                          // console.log(state)
+                          state = 2
+                        } else if (state === 2) {
+                          const index = filter.genresExclude.indexOf(genreChoice.mal_id)
+                          if (index > -1) filter.genresExclude.splice(index, 1)
+                          // console.log(state)
+                          state = 0
+                        }
+                      }"
+                      x-text="genreChoice.name"
+                    ></button>
+                  </template>
+                </span>
+                <hr class="border border-slate-300 w-full" />
+                Themes :
+                <span class="flex flex-wrap gap-1 justify-start w-[85vw] sm:w-[45vw] lg:w-[65vw]">
+                  <template x-for="themeChoice in themeChoices">
+                    <button
+                      x-data="{
+                        state: (filter.genres && filter.genresExclude) && (filter.genres.includes(themeChoice.mal_id) ? 1 : filter.genresExclude.includes(themeChoice.mal_id) ? 2 : 0)
+                      }"
+                      :class="`${state === 1 ? 'bg-green-500 text-white hover:bg-green-600' : state === 2 ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-slate-300 text-slate-700 hover:bg-slate-400'} py-1 px-2 rounded-md`"
+                      @click="() => {
+                        if (state === 0) {
+                          filter.genres.push(themeChoice.mal_id)
+                          // console.log(state)
+                          state = 1
+                        } else if (state === 1) {
+                          const index = filter.genres.indexOf(themeChoice.mal_id)
+                          if (index > -1) filter.genres.splice(index, 1)
+                          filter.genresExclude.push(themeChoice.mal_id)
+                          // console.log(state)
+                          state = 2
+                        } else if (state === 2) {
+                          const index = filter.genresExclude.indexOf(themeChoice.mal_id)
+                          if (index > -1) filter.genresExclude.splice(index, 1)
+                          // console.log(state)
+                          state = 0
+                        }
+                      }"
+                      x-text="themeChoice.name"
+                    ></button>
+                  </template>
+                </span>
+                <hr class="border border-slate-300 w-full" />
+                Demographics :
+                <span class="flex flex-wrap gap-1 justify-start w-[85vw] sm:w-[45vw] lg:w-[65vw]">
+                  <template x-for="demographicChoice in demographicChoices">
+                    <button
+                      x-data="{
+                        state: (filter.genres && filter.genresExclude) && (filter.genres.includes(demographicChoice.mal_id) ? 1 : filter.genresExclude.includes(demographicChoice.mal_id) ? 2 : 0)
+                      }"
+                      :class="`${state === 1 ? 'bg-green-500 text-white hover:bg-green-600' : state === 2 ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-slate-300 text-slate-700 hover:bg-slate-400'} py-1 px-2 rounded-md`"
+                      @click="() => {
+                        if (state === 0) {
+                          filter.genres.push(demographicChoice.mal_id)
+                          // console.log(state)
+                          state = 1
+                        } else if (state === 1) {
+                          const index = filter.genres.indexOf(demographicChoice.mal_id)
+                          if (index > -1) filter.genres.splice(index, 1)
+                          filter.genresExclude.push(demographicChoice.mal_id)
+                          // console.log(state)
+                          state = 2
+                        } else if (state === 2) {
+                          const index = filter.genresExclude.indexOf(demographicChoice.mal_id)
+                          if (index > -1) filter.genresExclude.splice(index, 1)
+                          // console.log(state)
+                          state = 0
+                        }
+                      }"
+                      x-text="demographicChoice.name"
+                    ></button>
+                  </template>
+                </span>
+              </div>
+            </div>
+          </div>
         </section>
-        <!-- pagination -->
-        <section
-          id="pagination-container"
-          class="flex"
-          x-data="{
-            filter: $store.filters,
-            pagination: $store.paginations,
-          }"
-        >
-          <!-- prev page button -->
-          <button
-            :class="`${pagination.page !== 1 ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-200 text-slate-400'} p-1 rounded-l-md transition-colors duration-200`"
-            :disabled="pagination.page === 1"
-            @click="() => {
-            pagination.page -= 1;
-            searchAnimes($store)
-          }"
-          >
-            <!-- prev icon -->
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="lucide lucide-chevron-left"
-            >
-              <polyline points="15 18 9 12 15 6"></polyline>
-            </svg>
-          </button>
-          <!-- first page button -->
-          <button
-            :class="`${pagination.page === 1 ? 'bg-blue-600 text-white' :'bg-slate-300 text-slate-700 hover:bg-slate-400'} py-1 px-2 transition-colors duration-200`"
-            @click="() => {
-              pagination.page = 1;
-              searchAnimes($store)
-            }"
-            :disabled="pagination.page === 1"
-          >
-            1
-          </button>
-          <span class="bg-slate-300 text-slate-700 py-1 px-2" x-show="pagination.page > 2">...</span>
-          <!-- middle/current page button -->
-          <button
+        <!-- paginations -->
+        <section id="pagination-container" class="flex flex-col gap-1 items-stretch sm:items-end">
+          <!-- max item shown -->
+          <div class="flex items-center justify-center gap-1 py-1 px-2 w-full bg-white font-semibold border-2 border-slate-300 rounded-md">
+            Show :
+            <input type="number" min="1" max="25" class="w-9 text-end pr-1" x-model="$store.paginations.limit" />
+            items.
+          </div>
+          <!-- pagination menu -->
+          <div
+            class="flex"
             x-data="{
-              get page() {
-                if (pagination.page === 1) return 2;
-                if (pagination.page === pagination.lastPage) return (pagination.lastPage - 1);
-                return pagination.page;
-              } 
-            }"
-            :class="`${pagination.page !== 1 && pagination.page !== pagination.lastPage ? 'bg-blue-600 text-white' :'bg-slate-300 text-slate-700 hover:bg-slate-400'} py-1 px-2 transition-colors duration-200`"
-            x-show="pagination.lastPage > 2"
-            x-text="page"
-            @click="() => {
-              pagination.page = page;
-              searchAnimes($store)
-            }"
-            :disabled="pagination.page !== 1 && pagination.page !== pagination.lastPage"
-          ></button>
-          <span class="bg-slate-300 text-slate-700 py-1 px-2" x-show="(pagination.lastPage - pagination.page) > 1">...</span>
-          <!-- last page button -->
-          <button
-            :class="`${pagination.lastPage === pagination.page ? 'bg-blue-600 text-white' :'bg-slate-300 text-slate-700 hover:bg-slate-400'} py-1 px-2 transition-colors duration-200`"
-            x-show="pagination.lastPage !== 1"
-            x-text="pagination.lastPage"
-            @click="() => {
-              pagination.page = pagination.lastPage;
-              searchAnimes($store)
-            }"
-            :disabled="pagination.lastPage === pagination.page"
-          ></button>
-          <!-- next page button -->
-          <button
-            :class="`${pagination.lastPage !== pagination.page ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-200 text-slate-400'} p-1 rounded-r-md transition-colors duration-200`"
-            :disabled="pagination.lastPage === pagination.page"
-            @click="() => {
-            pagination.page += 1;
-            searchAnimes($store)
+              filter: $store.filters,
+              pagination: $store.paginations,
             }"
           >
-            <!-- next icon -->
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="lucide lucide-chevron-right"
+            <!-- prev page button -->
+            <button
+              :class="`${pagination.page !== 1 ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-200 text-slate-400'} p-1 rounded-l-md transition-colors duration-200`"
+              :disabled="pagination.page === 1 || $store.animes.isLoading"
+              @click="() => {
+              pagination.page -= 1;
+              searchAnimes($store)
+            }"
             >
-              <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-          </button>
+              <!-- prev icon -->
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="lucide lucide-chevron-left"
+              >
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+            </button>
+            <!-- first page button -->
+            <button
+              :class="`${pagination.page === 1 ? 'bg-blue-600 text-white' :'bg-slate-300 text-slate-700 hover:bg-slate-400'} py-1 px-2 transition-colors duration-200`"
+              @click="() => {
+                pagination.page = 1;
+                searchAnimes($store)
+              }"
+              :disabled="pagination.page === 1 || $store.animes.isLoading"
+            >
+              1
+            </button>
+            <span class="bg-slate-300 text-slate-700 py-1 px-2" x-show="pagination.page > 2">...</span>
+            <!-- middle/current page button -->
+            <button
+              x-data="{
+                get page() {
+                  if (pagination.page === 1) return 2;
+                  if (pagination.page === pagination.lastPage) return (pagination.lastPage - 1);
+                  return pagination.page;
+                } 
+              }"
+              :class="`${pagination.page !== 1 && pagination.page !== pagination.lastPage ? 'bg-blue-600 text-white' :'bg-slate-300 text-slate-700 hover:bg-slate-400'} py-1 px-2 transition-colors duration-200`"
+              x-show="pagination.lastPage > 2"
+              x-text="page"
+              @click="() => {
+                pagination.page = page;
+                searchAnimes($store)
+              }"
+              :disabled="(pagination.page !== 1 && pagination.page !== pagination.lastPage) || $store.animes.isLoading"
+            ></button>
+            <span class="bg-slate-300 text-slate-700 py-1 px-2" x-show="(pagination.lastPage - pagination.page) > 1">...</span>
+            <!-- last page button -->
+            <button
+              :class="`${pagination.lastPage === pagination.page ? 'bg-blue-600 text-white' :'bg-slate-300 text-slate-700 hover:bg-slate-400'} py-1 px-2 transition-colors duration-200`"
+              x-show="pagination.lastPage !== 1"
+              x-text="pagination.lastPage"
+              @click="() => {
+                pagination.page = pagination.lastPage;
+                searchAnimes($store)
+              }"
+              :disabled="pagination.lastPage === pagination.page || $store.animes.isLoading"
+            ></button>
+            <!-- next page button -->
+            <button
+              :class="`${pagination.lastPage !== pagination.page ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-200 text-slate-400'} p-1 rounded-r-md transition-colors duration-200`"
+              :disabled="pagination.lastPage === pagination.page || $store.animes.isLoading"
+              @click="() => {
+              pagination.page += 1;
+              searchAnimes($store)
+              }"
+            >
+              <!-- next icon -->
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="lucide lucide-chevron-right"
+              >
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+          </div>
         </section>
       </section>
     </section>
+    <!-- Content -->
     <section
       id="cards-container"
       x-data="{
-        init: async () => await searchAnimes($store),
+        init() {
+          setTimeout(async () => await searchAnimes($store), 1500);
+        },
         animes: $store.animes,
       }"
     >
@@ -685,6 +923,7 @@
         </template>
       </div>
     </section>
+    <!-- Modal -->
     <section
       id="modal-container"
       class="fixed inset-0 z-[100] overflow-y-auto flex items-center justify-center min-h-screen px-4 text-center sm:p-5"
