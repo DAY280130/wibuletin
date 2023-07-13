@@ -34,12 +34,12 @@
           startDate: "2022",
           get startDateFilter() {
             if (this.startDate === "") return "";
-            return `&start_date=${this.startDate}`;
+            return `&start_date=${this.startDate}-01-01`;
           },
           endDate: "2023",
           get endDateFilter() {
             if (this.endDate === "") return "";
-            return `&end_date=${this.endDate}`;
+            return `&end_date=${this.endDate}-01-01`;
           },
           orderBy: "start_date",
           get orderByFilter() {
@@ -59,7 +59,7 @@
           maxScore: 10.0,
           get maxScoreFilter() {
             if (this.max_score === 10.0) return "";
-            return `&maxScore=${this.maxScore}`;
+            return `&max_score=${this.maxScore}`;
           },
           genres: [],
           get genresFilter() {
